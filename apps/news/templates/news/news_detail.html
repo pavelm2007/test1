@@ -1,0 +1,100 @@
+{% extends 'news/base.html' %}
+
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h1>{{ object.title }}</h1>
+
+            <p>{{ object.content }}</p>
+            {% if can_like %}
+                <div id="fb-root"></div>
+                <script src="http://connect.facebook.net/en_US/all.js#appId=290489334391958&amp;xfbml=1"></script>
+                <fb:like href="{{ request.build_absolute_uri }}" send="false" width="450" show_faces="true"
+                         action="like" font=""></fb:like>
+                <!--
+                <div class="fb-like" data-href="{{ request.build_absolute_uri }}" data-layout="standard"
+                     data-action="like" data-show-faces="true" data-share="true"></div>
+                     -->
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block facebook_like %}
+    {% if can_like %}
+        <div>
+            <div id="fb-root"></div>
+            <script src="http://connect.facebook.net/en_US/all.js"></script>
+            <script>
+                FB.init({
+                    appId: '290489334391958',
+                    status: true, // check login status
+                    cookie: true, // enable cookies to allow the server to access the session
+                    xfbml: true, // parse XFBML
+                    channelUrl: '{{ request.build_absolute_uri }}', // channel.html file
+                    oauth: true // enable OAuth 2.0
+                });
+            </script>
+        </div>
+        <!--
+                <div id="fb-root"></div>
+                <script>(function (d, s, id) {
+                    var js, fjs = d.getElementsByTagName(s)[0];
+                    if (d.getElementById(id)) return;
+                    js = d.createElement(s);
+                    js.id = id;
+                    js.src = "//connect.facebook.net/ru_RU/all.js#xfbml=1&appId=290489334391958";
+                    fjs.parentNode.insertBefore(js, fjs);
+
+                }(document, 'script', 'facebook-jssdk'));</script>
+                -->
+    {% endif %}
+
+{% endblock %}
+{% block extra_js %}
+    {% if can_like %}
+        <script>
+            $(document).ready(function () {
+                $.ajaxSetup({
+                    beforeSend: function (xhr, settings) {
+                        function getCookie(name) {
+                            var cookieValue = null;
+                            if (document.cookie && document.cookie != '') {
+                                var cookies = document.cookie.split(';');
+                                for (var i = 0; i < cookies.length; i++) {
+                                    var cookie = jQuery.trim(cookies[i]);
+                                    // Does this cookie string begin with the name we want?
+                                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                        break;
+                                    }
+                                }
+                            }
+                            return cookieValue;
+                        }
+
+                        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                            // Only send the token to relative URLs i.e. locally.
+                            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                        }
+                    }
+                });
+            });
+        </script>
+        <script src="http://connect.facebook.net/en_US/all.js"></script>
+        <script>
+            FB.Event.subscribe('edge.create', function (href, widget) {
+                $.ajax(
+                        {
+                            type: 'post',
+                            url: {% url 'post_like' %},
+                            data: {'object':{{ object.id }}},
+                            dataType: "json"
+                        }
+                )
+            });
+        </script>
+
+    {% endif %}
+{% endblock %}
