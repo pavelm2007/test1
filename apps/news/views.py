@@ -15,7 +15,7 @@ __all__ = [
 
 class NewsList(ListView):
     model = New
-    paginate_by = 5
+    paginate_by = 10
     template_name = 'news/news_list.html'
 
 
